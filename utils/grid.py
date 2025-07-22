@@ -1,5 +1,14 @@
 import streamlit as st
 from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
+import json
+
+# Función para validar si un objeto es serializable a JSON
+def es_serializable(obj):
+    try:
+        json.dumps(obj)
+        return True
+    except (TypeError, OverflowError):
+        return False
 
 def mostrar_aggrid(
     df,
@@ -11,15 +20,17 @@ def mostrar_aggrid(
 ) -> dict:
     df = df.copy().reset_index(drop=True)
 
-    # 🔒 Protección: eliminar funciones u objetos no serializables
+    # 🔒 Convertir cualquier valor no serializable a string
     for col in df.columns:
-        if df[col].apply(lambda x: callable(x)).any():
+        if not df[col].apply(es_serializable).all():
             df[col] = df[col].astype(str)
 
     gb = GridOptionsBuilder.from_dataframe(df)
 
     # Filtros y comportamiento básico
     gb.configure_default_column(resizable=True, wrapText=True, autoHeight=True, filter=True)
+
+    columna_dos_decimales = {"Último costo"}
 
     for col in df.columns:
         editable_col = editable and (columnas_bloqueadas is None or col not in columnas_bloqueadas)
