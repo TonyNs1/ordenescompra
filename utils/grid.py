@@ -2,14 +2,6 @@ import streamlit as st
 from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
 import json
 
-# Función para validar si un objeto es serializable a JSON
-def es_serializable(obj):
-    try:
-        json.dumps(obj)
-        return True
-    except (TypeError, OverflowError):
-        return False
-
 def mostrar_aggrid(
     df,
     editable=False,
@@ -20,51 +12,24 @@ def mostrar_aggrid(
 ) -> dict:
     df = df.copy().reset_index(drop=True)
 
-    # 🔒 Convertir cualquier valor no serializable a string
+    # Serializar todo a texto si es necesario
     for col in df.columns:
-        if not df[col].apply(es_serializable).all():
-            df[col] = df[col].astype(str)
+        df[col] = df[col].apply(lambda x: str(x) if not isinstance(x, (int, float, str, bool, type(None))) else x)
 
     gb = GridOptionsBuilder.from_dataframe(df)
-
-    # Filtros y comportamiento básico
     gb.configure_default_column(resizable=True, wrapText=True, autoHeight=True, filter=True)
-
-    columna_dos_decimales = {"Último costo"}
 
     for col in df.columns:
         editable_col = editable and (columnas_bloqueadas is None or col not in columnas_bloqueadas)
-        flex_val = 2 if col.lower().startswith(("nombre", "último")) else 1
-
-        gb.configure_column(
-            col,
-            editable=editable_col,
-            flex=flex_val,
-            minWidth=100
-        )
+        gb.configure_column(col, editable=editable_col)
 
     if seleccionar_filas:
-        gb.configure_selection(
-            selection_mode="multiple",
-            use_checkbox=True,
-            header_checkbox=True,
-            header_checkbox_filtered_only=False,
-        )
-
-    gb.configure_grid_options(
-        domLayout="normal",
-        suppressRowClickSelection=True,
-        enableCellTextSelection=True,
-        headerHeight=30,
-        rowHeight=34,
-    )
-
-    update_mode = GridUpdateMode.MODEL_CHANGED if editable else GridUpdateMode.SELECTION_CHANGED
+        gb.configure_selection("multiple", use_checkbox=True)
 
     return AgGrid(
         df,
         gridOptions=gb.build(),
-        update_mode=update_mode,
+        update_mode=GridUpdateMode.MODEL_CHANGED if editable else GridUpdateMode.SELECTION_CHANGED,
         data_return_mode="AS_INPUT",
         allow_unsafe_jscode=False,
         use_container_width=True,
