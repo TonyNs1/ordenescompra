@@ -3,4 +3,5 @@ pandas
 openpyxl
 numpy
 xlsxwriter>=3.1.9
-st-aggrid
+streamlit-aggrid
+rich==13.6.0  # o alguna <14
