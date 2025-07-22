@@ -19,24 +19,6 @@ def mostrar_aggrid(
     # ✅ Solo esta columna se formatea con dos decimales
     columna_dos_decimales = {"Último costo"}
 
-    # 🎨 Zebra striping
-    js_zebra = JsCode("""
-        function(params) {
-            return params.node.rowIndex % 2 === 0;
-        }
-    """)
-
-    # ⌨️ Detener edición con Enter o Tab
-    js_keyboard = JsCode("""
-        function(params) {
-            const ENTER = 13, TAB = 9;
-            if (params.event.keyCode === ENTER || params.event.keyCode === TAB) {
-                params.api.stopEditing();
-            }
-            return false;
-        }
-    """)
-
     for col in df.columns:
         editable_col = editable and (columnas_bloqueadas is None or col not in columnas_bloqueadas)
         flex_val = 2 if col.lower().startswith(("nombre", "último")) else 1
@@ -45,7 +27,7 @@ def mostrar_aggrid(
             gb.configure_column(
                 col,
                 type=["numericColumn", "customNumericFormat"],
-                valueFormatter=JsCode("""
+                valueFormatter=JsCode(""" 
                     function(params) {
                         let val = parseFloat(params.value);
                         return isNaN(val) ? '0.00' : val.toFixed(2);
@@ -71,14 +53,13 @@ def mostrar_aggrid(
             header_checkbox_filtered_only=False,
         )
 
+    # 🔧 Removido: rowClassRules y suppressKeyboardEvent (causaban crash)
     gb.configure_grid_options(
         domLayout="normal",
         suppressRowClickSelection=True,
         enableCellTextSelection=True,
         headerHeight=30,
         rowHeight=34,
-        rowClassRules={"fila-alterna": js_zebra},
-        suppressKeyboardEvent=js_keyboard,
     )
 
     update_mode = GridUpdateMode.MODEL_CHANGED if editable else GridUpdateMode.SELECTION_CHANGED
