@@ -1,0 +1,17 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Entorno virtual
+.venv/
+
+# Archivos Excel generados, no la plantilla base
+Orden_*.xlsx
+historial_*.xlsx
+
+# Archivos ocultos del sistema
+.DS_Store
+Thumbs.db
+
+# Config local de Streamlit
+.streamlit/
