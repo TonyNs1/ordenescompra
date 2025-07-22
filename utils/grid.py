@@ -1,6 +1,5 @@
 import streamlit as st
 from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
-import json
 
 def mostrar_aggrid(
     df,
@@ -12,7 +11,7 @@ def mostrar_aggrid(
 ) -> dict:
     df = df.copy().reset_index(drop=True)
 
-    # Serializar todo a texto si es necesario
+    # 🔒 Forzar contenido serializable
     for col in df.columns:
         df[col] = df[col].apply(lambda x: str(x) if not isinstance(x, (int, float, str, bool, type(None))) else x)
 
@@ -24,7 +23,12 @@ def mostrar_aggrid(
         gb.configure_column(col, editable=editable_col)
 
     if seleccionar_filas:
-        gb.configure_selection("multiple", use_checkbox=True)
+        gb.configure_selection(
+            selection_mode="multiple",
+            use_checkbox=True,
+            header_checkbox=True,
+            header_checkbox_filtered_only=False,
+        )
 
     return AgGrid(
         df,
