@@ -11,12 +11,15 @@ def mostrar_aggrid(
 ) -> dict:
     df = df.copy().reset_index(drop=True)
 
+    # 🔒 Protección: eliminar funciones u objetos no serializables
+    for col in df.columns:
+        if df[col].apply(lambda x: callable(x)).any():
+            df[col] = df[col].astype(str)
+
     gb = GridOptionsBuilder.from_dataframe(df)
 
     # Filtros y comportamiento básico
     gb.configure_default_column(resizable=True, wrapText=True, autoHeight=True, filter=True)
-
-    columna_dos_decimales = {"Último costo"}
 
     for col in df.columns:
         editable_col = editable and (columnas_bloqueadas is None or col not in columnas_bloqueadas)
@@ -58,4 +61,3 @@ def mostrar_aggrid(
         theme="streamlit",
         key=key,
     )
-
